@@ -6,8 +6,8 @@ The application is built using React, Node.js, Express.js, and MongoDB, with JWT
 
 ## Live Demo
 
-* **Live Application:** [Add your Vercel frontend URL]
-* **Backend API:** [Add your Vercel backend URL]
+* **Live Application:** [https://workasana-task-management-applicati-phi.vercel.app/login]
+* **Backend API:** [https://workasana-task-management-applicati.vercel.app/]
 
 ## Features
 
@@ -229,7 +229,7 @@ Environment files are excluded from Git using `.gitignore`.
 ### Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/sunny-raj-sah/Workasana---Task-Management-Application.git>
 cd workasana
 ```
 
