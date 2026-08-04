@@ -2,12 +2,14 @@
 import Layout from "../components/Layout";
 import api from "../services/api";
 import toast from "react-hot-toast";
+import TaskSearch from "../components/TaskSearch";
 
 const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("In Progress");
+const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
@@ -38,12 +40,42 @@ const Dashboard = () => {
     [tasks]
   );
 
-  const filteredTasks = useMemo(() => {
-    if (!filter) return tasks;
-    return tasks.filter((t) => t.status === filter);
-  }, [tasks, filter]);
+  // const filteredTasks = useMemo(() => {
+  //   if (!filter) return tasks;
+  //   return tasks.filter((t) => t.status === filter);
+  // }, [tasks, filter]);
+const filteredTasks = useMemo(() => {
+  let result = tasks;
 
+  // Status filter
+  if (filter) {
+    result = result.filter((t) => t.status === filter);
+  }
+
+  // Search filter
+  const search = searchTerm.trim().toLowerCase();
+
+  if (search) {
+    result = result.filter((t) => {
+      const taskName = t.title?.toLowerCase() || "";
+      const projectName = t.project?.name?.toLowerCase() || "";
+
+      return (
+        taskName.includes(search) ||
+        projectName.includes(search)
+      );
+    });
+  }
+
+  return result;
+}, [tasks, filter, searchTerm]);
+
+ 
   const recentTasks = filteredTasks.slice(0, 5);
+
+ const displayedTasks = searchTerm.trim()
+  ? filteredTasks
+  : recentTasks;
 
   return (
     <Layout title="Dashboard"
@@ -55,6 +87,24 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
+        {/* search bar */}
+   <div className="content-card mb-4">
+  <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+    <div>
+      <h5 className="fw-bold mb-1">Search Tasks</h5>
+      <p className="text-muted mb-0">
+        Search by task name or project name
+      </p>
+    </div>
+
+    <TaskSearch
+      value={searchTerm}
+      onChange={setSearchTerm}
+    />
+  </div>
+</div>
+{/* ---------------------------------------------------------- */}
+
           <div className="row g-4 mb-4">
             <div className="col-12 col-md-6 col-xl-3">
               <div className="content-card h-100">
@@ -112,8 +162,136 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+          {/* ------------------------------------------------------------------------------------ */}
 
-          <div className="content-card mb-4">
+          {/* Recent Tasks section */}
+ 
+  <div className="content-card h-100">
+  <div className="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h5 className="fw-bold mb-1">Recent Tasks</h5>
+      <p className="text-muted small mb-0">
+        {searchTerm
+          ? `Showing ${displayedTasks.length} result(s)`
+          : "Your latest project tasks"}
+      </p>
+    </div>
+
+    <div className="dropdown">
+      <button
+        className="btn btn-light btn-sm rounded-pill dropdown-toggle"
+        data-bs-toggle="dropdown"
+      >
+        {filter || "All"}
+      </button>
+
+      <ul className="dropdown-menu dropdown-menu-end">
+        <li>
+          <button className="dropdown-item" onClick={() => setFilter("")}>
+            All
+          </button>
+        </li>
+        <li>
+          <button className="dropdown-item" onClick={() => setFilter("Todo")}>
+            Todo
+          </button>
+        </li>
+        <li>
+          <button className="dropdown-item" onClick={() => setFilter("In Progress")}>
+            In Progress
+          </button>
+        </li>
+        <li>
+          <button className="dropdown-item" onClick={() => setFilter("Completed")}>
+            Completed
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  {displayedTasks.length === 0 ? (
+    <div className="text-center py-5">
+      <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+           style={{ width: 72, height: 72 }}>
+        <i className="bi bi-search text-muted fs-3"></i>
+      </div>
+
+      <h6 className="fw-bold mb-2">No tasks found</h6>
+
+      <p className="text-muted mb-3">
+        Try searching with a different task or project name.
+      </p>
+
+      {searchTerm && (
+        <button
+          className="btn btn-outline-primary btn-sm rounded-pill px-3"
+          onClick={() => setSearchTerm("")}
+        >
+          Clear Search
+        </button>
+      )}
+    </div>
+  ) : (
+    <div className="d-flex flex-column gap-3">
+      {displayedTasks.map((task) => (
+        <div
+          key={task._id}
+          className="border rounded-4 p-3 task-card-hover"
+        >
+          <div className="d-flex justify-content-between align-items-start gap-3">
+            <div className="flex-grow-1">
+              <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <h6 className="fw-bold mb-0">{task.title}</h6>
+
+                <span
+                  className={`badge ${
+                    task.priority === "High"
+                      ? "bg-danger-subtle text-danger"
+                      : task.priority === "Medium"
+                      ? "bg-warning-subtle text-warning"
+                      : "bg-success-subtle text-success"
+                  }`}
+                >
+                  {task.priority}
+                </span>
+              </div>
+
+              <div className="d-flex align-items-center gap-3 flex-wrap text-muted small">
+                <span className="d-flex align-items-center gap-1">
+                  <i className="bi bi-folder2-open"></i>
+                  {task.project?.name || "No Project"}
+                </span>
+
+                <span className="d-flex align-items-center gap-1">
+                  <i className="bi bi-calendar-event"></i>
+                  {task.dueDate
+                    ? new Date(task.dueDate).toLocaleDateString()
+                    : "No due date"}
+                </span>
+              </div>
+            </div>
+
+            <span
+              className={`badge ${
+                task.status === "Completed"
+                  ? "bg-success-subtle text-success"
+                  : task.status === "In Progress"
+                  ? "bg-primary-subtle text-primary"
+                  : "bg-secondary-subtle text-secondary"
+              }`}
+            >
+              {task.status}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div> 
+
+{/* --------------------------------------------------------------- */}
+          {/* <div className="content-card mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
               <h5 className="mb-0 fw-bold">Recent Tasks</h5>
 
@@ -179,7 +357,7 @@ const Dashboard = () => {
                 </div>
               ))
             )}
-          </div>
+          </div> */}
         </>
       )}
     </Layout>

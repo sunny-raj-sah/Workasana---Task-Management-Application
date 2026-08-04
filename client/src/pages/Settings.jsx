@@ -67,7 +67,7 @@
 // console.log(localStorage.getItem("token"))
   
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
@@ -80,6 +80,8 @@ const Settings = () => {
     name: state.user?.name || "",
     email: state.user?.email || "",
   });
+ 
+
 
   const [passwords, setPasswords] = useState({
     current: "",
@@ -137,7 +139,16 @@ const Settings = () => {
     dispatch({ type: "LOGOUT" });
     window.location.href = "/login";
   };
-  
+   useEffect(() => {
+  if (state.user) {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setProfile({
+      name: state.user.name || "",
+      email: state.user.email || "",
+    });
+  }
+}, [state.user]);
+console.log("data: ",state);
   return (
     <Layout title="Settings">
       <div className="row g-4">

@@ -1,5 +1,5 @@
- import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+ import { useEffect, useState} from "react";
+import { useParams,useNavigate ,Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -7,6 +7,8 @@ import EditTaskModal from "../components/EditTaskModal";
 
 const TaskDetails = () => {
   const { id } = useParams();
+const navigate = useNavigate();
+
 
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ const [showEdit, setShowEdit] = useState(false);
       setLoading(true);
 
       const { data } = await api.get(`/tasks/${id}`);
-
+// console.log("Task data:", data);
       setTask(data);
     } catch (error) {
       toast.error("Failed to load task");
@@ -45,7 +47,20 @@ const [showEdit, setShowEdit] = useState(false);
       toast.error("Failed to update task");
       console.log("message:",error)
     }
+    
   };
+  const deleteTask = async () => {
+  try {
+     const projectId = task.project._id;
+    await api.delete(`/tasks/${id}`);
+
+    toast.success("Task deleted successfully");
+    navigate(`/projects/${projectId}`);
+  } catch (error) {
+    toast.error("Failed to delete task");
+    console.log("message:", error);
+  }
+};
 
   const handleTaskUpdated = (updatedTask) => { setTask(updatedTask); };
 
@@ -246,6 +261,13 @@ const [showEdit, setShowEdit] = useState(false);
               )}
 
                <button className="btn btn-outline-primary rounded-pill py-2" onClick={() => setShowEdit(true)} > <i className="bi bi-pencil me-2"></i> Edit Task </button>
+                <button
+              className="btn btn-danger w-100 rounded-pill"
+              onClick={deleteTask}
+            >
+              <i className="bi bi-box-arrow-right me-2"></i>
+              Delete task
+            </button>
             </div>
           </div>
         </div>

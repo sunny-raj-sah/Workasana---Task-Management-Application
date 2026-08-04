@@ -26,7 +26,14 @@ const Signup = () => {
 
       dispatch({
         type: "LOGIN_SUCCESS",
-        payload: data,
+        payload: {
+    user: {
+      _id: data._id,
+      name: data.name,
+      email: data.email,
+    },
+    token: data.token,
+  },
       });
 
       toast.success("Account created successfully");

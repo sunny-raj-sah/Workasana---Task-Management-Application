@@ -1,11 +1,14 @@
-import { NavLink } from "react-router-dom";
+import { NavLink,Link } from "react-router-dom";
 
 const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <i className="bi bi-kanban-fill me-2"></i>
+
+        <Link to="/dashboard" className="text-white">
+         <i className="bi bi-kanban-fill me-2"></i>
         <span>Workasana</span>
+        </Link>
       </div>
 
       <nav className="sidebar-menu">
