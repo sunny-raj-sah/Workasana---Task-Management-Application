@@ -210,6 +210,7 @@ const CreateTaskModal = ({
   const [users, setUsers] = useState([]);
   const [availableTags, setAvailableTags] = useState([]);
   const [loading, setLoading] = useState(false);
+const [newTag, setNewTag] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -268,16 +269,50 @@ const CreateTaskModal = ({
   };
 
   // Tag selection
-  const handleTagChange = (tag) => {
-    setForm((prev) => ({
-      ...prev,
-      tags: prev.tags.includes(tag)
-        ? prev.tags.filter(
-            (item) => item !== tag
-          )
-        : [...prev.tags, tag],
-    }));
-  };
+ const handleTagChange = (tag) => {
+  setForm((prev) => ({
+    ...prev,
+    tags: prev.tags.includes(tag)
+      ? prev.tags.filter(
+          (item) => item !== tag
+        )
+      : [...prev.tags, tag],
+  }));
+};
+
+const addCustomTag = () => {
+  const tag = newTag.trim();
+
+  if (!tag) return;
+
+  // Don't add duplicate tags
+  if (
+    form.tags.some(
+      (item) =>
+        item.toLowerCase() === tag.toLowerCase()
+    )
+  ) {
+    toast.error("Tag already selected");
+    return;
+  }
+
+  setForm((prev) => ({
+    ...prev,
+    tags: [...prev.tags, tag],
+  }));
+
+  // Add it to available tags as well
+  setAvailableTags((prev) =>
+    prev.some(
+      (item) =>
+        item.toLowerCase() === tag.toLowerCase()
+    )
+      ? prev
+      : [...prev, tag]
+  );
+
+  setNewTag("");
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -521,85 +556,110 @@ const CreateTaskModal = ({
             </div>
 
             {/* Tags */}
-            <div className="col-md-6">
-              <Form.Label>
-                Tags
-              </Form.Label>
+             <div className="col-md-6">
+  <Form.Label>Tags</Form.Label>
 
-              <div className="dropdown">
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary dropdown-toggle w-100 text-start"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  {form.tags.length === 0
-                    ? "Select tags"
-                    : `${form.tags.length} tag${
-                        form.tags.length > 1
-                          ? "s"
-                          : ""
-                      } selected`}
-                </button>
+  <div className="dropdown">
+    <button
+      type="button"
+      className="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+    >
+      {form.tags.length === 0
+        ? "Select or add tags"
+        : `${form.tags.length} tag${
+            form.tags.length > 1 ? "s" : ""
+          } selected`}
+    </button>
 
-                <div
-                  className="dropdown-menu w-100 p-2"
-                  style={{
-                    maxHeight: "220px",
-                    overflowY: "auto",
-                  }}
-                >
-                  {availableTags.length === 0 ? (
-                    <div className="text-muted small px-2 py-2">
-                      No existing tags available
-                    </div>
-                  ) : (
-                    availableTags.map((tag) => (
-                      <div
-                        key={tag}
-                        className="dropdown-item-text"
-                      >
-                        <Form.Check
-                          type="checkbox"
-                          id={`tag-${tag}`}
-                          label={tag}
-                          checked={form.tags.includes(
-                            tag
-                          )}
-                          onChange={() =>
-                            handleTagChange(tag)
-                          }
-                        />
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
+    <div
+      className="dropdown-menu w-100 p-2"
+      style={{
+        maxHeight: "280px",
+        overflowY: "auto",
+      }}
+    >
+      {/* Add Custom Tag */}
+      <div className="mb-2">
+        <div className="input-group">
+          <Form.Control
+            type="text"
+            placeholder="Add new tag"
+            value={newTag}
+            onChange={(e) =>
+              setNewTag(e.target.value)
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCustomTag();
+              }
+            }}
+          />
 
-              {/* Selected Tags */}
-              {form.tags.length > 0 && (
-                <div className="d-flex flex-wrap gap-2 mt-2">
-                  {form.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="badge bg-secondary rounded-pill px-3 py-2"
-                    >
-                      {tag}
+          <Button
+            type="button"
+            variant="primary"
+            onClick={addCustomTag}
+          >
+            Add
+          </Button>
+        </div>
+      </div>
 
-                      <button
-                        type="button"
-                        className="btn btn-sm text-white p-0 ms-2"
-                        onClick={() =>
-                          handleTagChange(tag)
-                        }
-                      >
-                        <i className="bi bi-x"></i>
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+      <div className="dropdown-divider"></div>
+
+      {/* Existing Tags */}
+      {availableTags.length === 0 ? (
+        <div className="text-muted small px-2 py-2">
+          No existing tags available
+        </div>
+      ) : (
+        availableTags.map((tag) => (
+          <div
+            key={tag}
+            className="dropdown-item-text"
+          >
+            <Form.Check
+              type="checkbox"
+              id={`tag-${tag}`}
+              label={tag}
+              checked={form.tags.includes(tag)}
+              onChange={() =>
+                handleTagChange(tag)
+              }
+            />
+          </div>
+        ))
+      )}
+    </div>
+  </div>
+
+  {/* Selected Tags */}
+  {form.tags.length > 0 && (
+    <div className="d-flex flex-wrap gap-2 mt-2">
+      {form.tags.map((tag) => (
+        <span
+          key={tag}
+          className="badge bg-secondary rounded-pill px-3 py-2"
+        >
+          {tag}
+
+          <button
+            type="button"
+            className="btn btn-sm text-white p-0 ms-2"
+            onClick={() =>
+              handleTagChange(tag)
+            }
+          >
+            <i className="bi bi-x"></i>
+          </button>
+        </span>
+      ))}
+    </div>
+  )}
+</div>
 
             {/* Due Date */}
             <div className="col-md-6">
